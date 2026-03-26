@@ -7,11 +7,13 @@ Plugin WordPress para autenticação automática de usuários via certificado di
 - [Visão Geral](#visão-geral)
 - [Requisitos](#requisitos)
 - [Instalação](#instalação)
+- [Configuração do Plugin](#configuração-do-plugin)
 - [Configuração do Servidor](#configuração-do-servidor)
 - [Como Funciona](#como-funciona)
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Uso](#uso)
 - [Referência Técnica](#referência-técnica)
+- [Changelog](#changelog)
 - [Autor](#autor)
 
 ## Visão Geral
@@ -37,6 +39,17 @@ Além disso, o plugin adiciona um campo **CNPJ** ao perfil de cada usuário no p
 1. Copie a pasta `login-certificado` para `wp-content/plugins/`.
 2. Ative o plugin no painel **Plugins** do WordPress.
 3. O plugin faz flush das rewrite rules automaticamente na primeira ativação (controlado por versão).
+
+## Configuração do Plugin
+
+Após ativar o plugin, acesse **Configurações → Login Certificado** no painel do WordPress para definir os parâmetros de validação do token JWT:
+
+| Campo | Descrição |
+|---|---|
+| **Chave Secreta (Secret)** | Chave usada para assinar e validar os tokens JWT (HS256). |
+| **Issuer (iss)** | Valor esperado do campo `iss` no token. Se vazio, a validação é ignorada. |
+| **Audience (aud)** | Valor esperado do campo `aud` no token. Se vazio, a validação é ignorada. |
+| **Validação de IP** | Modo de validação do campo `ip` do token: **Não validar**, **Comparar com o IP do servidor** (padrão) ou **Comparar com um IP específico**. |
 
 ## Configuração do Servidor
 
@@ -129,8 +142,9 @@ login-certificado/
 │       └── cnpj-check.js      # Formatação e verificação de duplicidade (frontend)
 └── inc/
     ├── setup.php              # Registra rewrite rule e query var
-    ├── auth.php               # Lógica de autenticação via certificado
-    ├── helpers.php            # Função utilitária para extrair CNPJ
+    ├── settings.php           # Página de configurações no admin (JWT, IP)
+    ├── auth.php               # Lógica de autenticação via JWT
+    ├── helpers.php            # Funções utilitárias (extrair CNPJ, obter IP do servidor)
     ├── user-meta.php          # Campo CNPJ no perfil + salvamento com validação
     ├── ajax.php               # Endpoint AJAX para verificar duplicidade de CNPJ
     └── assets.php             # Enfileiramento de scripts no admin
@@ -151,13 +165,35 @@ Acesse `https://seusite.com/login-certificado` com um navegador que possua o cer
 
 ## Referência Técnica
 
+### Token JWT
+
+O plugin espera um token JWT assinado com HS256 contendo os seguintes campos:
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `uid` | int | ID do usuário WordPress |
+| `iss` | string | Emissor do token (validado conforme configuração) |
+| `aud` | string | Audiência do token (validado conforme configuração) |
+| `ip` | string | Endereço IP (validado conforme modo configurado) |
+
+### Rota de Login via JWT
+
+```
+GET /jwt-login?token=<JWT>&redirect_to=<URL>
+```
+
+- `token` — Token JWT assinado
+- `redirect_to` _(opcional)_ — URL de redirecionamento após login (padrão: página inicial)
+
 ### Hooks do WordPress utilizados
 
 | Hook                              | Tipo     | Descrição                                      |
 |-----------------------------------|----------|-------------------------------------------------|
-| `query_vars`                      | Filter   | Registra a query var `login_cert`               |
+| `query_vars`                      | Filter   | Registra a query var `jwt_login`                |
 | `init`                            | Action   | Registra a rewrite rule e controla flush        |
-| `template_redirect`               | Action   | Executa a lógica de autenticação                |
+| `template_redirect`               | Action   | Executa a lógica de autenticação via JWT        |
+| `admin_init`                      | Action   | Registra as opções de configuração              |
+| `admin_menu`                      | Action   | Adiciona página de configurações                |
 | `show_user_profile`               | Action   | Exibe campo CNPJ no perfil próprio              |
 | `edit_user_profile`               | Action   | Exibe campo CNPJ no perfil de outros            |
 | `personal_options_update`         | Action   | Salva CNPJ ao atualizar perfil próprio          |
@@ -174,9 +210,32 @@ Acesse `https://seusite.com/login-certificado` com um navegador que possua o cer
 
 ### Opções
 
-| Option Key                   | Descrição                                     |
-|------------------------------|-----------------------------------------------|
-| `login_cert_rewrite_version` | Controle de flush de rewrite rules por versão |
+| Option Key                   | Descrição                                                  |
+|------------------------------|------------------------------------------------------------|
+| `login_cert_rewrite_version` | Controle de flush de rewrite rules por versão              |
+| `login_cert_jwt_secret`      | Chave secreta para assinatura/validação JWT                |
+| `login_cert_iss`             | Valor esperado do campo `iss` no token                     |
+| `login_cert_aud`             | Valor esperado do campo `aud` no token                     |
+| `login_cert_ip_mode`         | Modo de validação de IP (`none`, `server` ou `custom`)     |
+| `login_cert_custom_ip`       | IP personalizado para validação (quando modo = `custom`)   |
+
+## Changelog
+
+### 1.1.0
+
+- Adicionada página de configurações em **Configurações → Login Certificado**
+- Chave secreta JWT agora configurável via painel (não mais hardcoded)
+- Campos `iss` e `aud` configuráveis via painel
+- Validação de IP com três modos: desativada, IP do servidor ou IP personalizado
+- Adicionada função `getServerIP()` em `helpers.php`
+- Atualizada estrutura do projeto no README
+
+### 1.0.0
+
+- Versão inicial
+- Autenticação via certificado digital (CNPJ)
+- Campo CNPJ no perfil do usuário com validação de duplicidade
+- Verificação AJAX de duplicidade de CNPJ
 
 ## Autor
 

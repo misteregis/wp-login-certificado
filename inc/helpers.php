@@ -20,3 +20,22 @@ function extractCNPJ($subject)
 
     return null;
 }
+
+function getServerIP(): string
+{
+    // Tenta pelo SERVER_ADDR
+    if (!empty($_SERVER['SERVER_ADDR'])) {
+        return $_SERVER['SERVER_ADDR'];
+    }
+
+    // Tenta pelo hostname
+    if ($hostname = gethostname()) {
+        $ip = gethostbyname($hostname);
+        if ($ip !== $hostname) {
+            return $ip;
+        }
+    }
+
+    // Fallback final
+    return 'IP não encontrado';
+}

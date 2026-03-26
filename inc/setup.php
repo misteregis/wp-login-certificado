@@ -6,19 +6,19 @@ if (!defined('ABSPATH')) {
 
 // Adiciona query var
 add_filter('query_vars', function ($vars) {
-    $vars[] = 'login_cert';
+    $vars[] = 'jwt_login';
     return $vars;
 });
 
 // Registra rewrite
 add_action('init', function () {
-    add_rewrite_rule('^login-certificado/?$', 'index.php?login_cert=1', 'top');
+    add_rewrite_rule('^jwt-login/?$', 'index.php?jwt_login=1', 'top');
 });
 
-// Flush controlado (executa só 1x por versão)
+// Flush controlado
 add_action('init', function () {
-    if (get_option('login_cert_rewrite_version') !== '1.0.0') {
+    if (get_option('login_cert_rewrite_version') !== '1.1.0') {
         flush_rewrite_rules();
-        update_option('login_cert_rewrite_version', '1.0.0');
+        update_option('login_cert_rewrite_version', '1.1.0');
     }
 });

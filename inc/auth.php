@@ -5,43 +5,69 @@ if (!defined('ABSPATH')) {
 }
 
 add_action('template_redirect', function () {
-
-    // Só executa na rota /login-certificado
-    if (!get_query_var('login_cert')) {
+    // Só executa na rota /jwt-login
+    if (!get_query_var('jwt_login')) {
         return;
     }
 
-    if (empty($_SERVER['HTTP_X_CLIENT_SUBJECT'])) {
-        wp_die('Certificado não encontrado');
+    if (!isset($_GET['token'])) {
+        wp_die('Token não informado');
     }
 
-    $subject = $_SERVER['HTTP_X_CLIENT_SUBJECT'];
-    $cnpj = extractCNPJ($subject);
+    require_once ABSPATH . 'vendor/autoload.php';
 
-    if (!$cnpj) {
-        wp_die('CNPJ não encontrado no certificado.');
+    $secret = get_option('login_cert_jwt_secret', '');
+
+    if (empty($secret)) {
+        wp_die('Chave secreta não configurada');
     }
 
-    $users = get_users([
-        'meta_key'   => 'cnpj',
-        'meta_value' => $cnpj,
-        'number'     => 1
-    ]);
+    try {
+        $decoded = \Firebase\JWT\JWT::decode(
+            $_GET['token'],
+            new \Firebase\JWT\Key($secret, 'HS256')
+        );
 
-    $user = $users[0] ?? null;
+        // Validações extras
+        $expected_iss = get_option('login_cert_iss', '');
+        if (!empty($expected_iss) && $decoded->iss !== $expected_iss) {
+            wp_die('Issuer inválido');
+        }
 
-    if ($user) {
+        $expected_aud = get_option('login_cert_aud', '');
+        if (!empty($expected_aud) && $decoded->aud !== $expected_aud) {
+            wp_die('Audience inválido');
+        }
+
+        $ip_mode = get_option('login_cert_ip_mode', 'server');
+        if ($ip_mode === 'server') {
+            if ($decoded->ip !== getServerIP()) {
+                wp_die('Endereço de IP inválido');
+            }
+        } elseif ($ip_mode === 'custom') {
+            $custom_ip = get_option('login_cert_custom_ip', '');
+            if (!empty($custom_ip) && $decoded->ip !== $custom_ip) {
+                wp_die('Endereço de IP inválido');
+            }
+        }
+
+        $user = get_user_by('id', $decoded->uid);
+
+        if (!$user) {
+            wp_die('Usuário não encontrado');
+        }
+
+        // LOGIN
         wp_set_current_user($user->ID);
         wp_set_auth_cookie($user->ID);
-
-        /**
-         * Dispara evento padrão de login
-         */
         do_action('wp_login', $user->user_login, $user);
 
-        wp_safe_redirect(home_url());
+        // Redirect seguro
+        $redirect = $_GET['redirect_to'] ?? home_url();
+        wp_safe_redirect($redirect);
         exit;
-    }
 
-    wp_die("Nenhum usuário encontrado para o CNPJ: {$cnpj}");
+    } catch (Exception $e) {
+        wp_die('Token inválido ou expirado');
+    }
 });
