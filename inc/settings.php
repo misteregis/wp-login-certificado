@@ -6,7 +6,15 @@ if (!defined('ABSPATH')) {
 
 // Registra as opções
 add_action('admin_init', function () {
-    register_setting('login_cert_settings', 'login_cert_jwt_secret');
+    register_setting('login_cert_settings', 'login_cert_jwt_secret', [
+        'sanitize_callback' => function ($new_value) {
+            $placeholder = '••••••••••••••••';
+            if ($new_value === '' || $new_value === $placeholder) {
+                return get_option('login_cert_jwt_secret', '');
+            }
+            return $new_value;
+        },
+    ]);
     register_setting('login_cert_settings', 'login_cert_iss');
     register_setting('login_cert_settings', 'login_cert_aud');
     register_setting('login_cert_settings', 'login_cert_ip_mode');
@@ -25,9 +33,10 @@ add_action('admin_init', function () {
         'login_cert_jwt_secret',
         'Chave Secreta (Secret)',
         function () {
-            $value = get_option('login_cert_jwt_secret', '');
-            echo '<input type="password" name="login_cert_jwt_secret" value="' . esc_attr($value) . '" class="regular-text" autocomplete="off" />';
-            echo '<p class="description">Chave secreta usada para assinar e validar os tokens JWT.</p>';
+            $saved = get_option('login_cert_jwt_secret', '');
+            $display = $saved !== '' ? '••••••••••••••••' : '';
+            echo '<input type="text" name="login_cert_jwt_secret" value="' . esc_attr($display) . '" class="regular-text login-cert-secret" autocomplete="off" />';
+            echo '<p class="description">Chave secreta usada para assinar e validar os tokens JWT. Preencha apenas se deseja alterar.</p>';
         },
         'login-certificado',
         'login_cert_jwt_section'
@@ -104,7 +113,7 @@ add_action('admin_menu', function () {
             ?>
             <div class="wrap">
                 <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-                <form method="post" action="options.php">
+                <form method="post" action="options.php" autocomplete="off">
                     <?php
                     settings_fields('login_cert_settings');
                     do_settings_sections('login-certificado');

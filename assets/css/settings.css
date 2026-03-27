@@ -1,0 +1,5 @@
+.login-cert-secret {
+    -webkit-text-security: disc;
+    text-security: disc;
+    font-family: text-security-disc, password, sans-serif;
+}
