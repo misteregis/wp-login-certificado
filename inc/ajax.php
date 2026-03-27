@@ -9,6 +9,7 @@ add_action('wp_ajax_check_cnpj', function () {
     }
 
     $cnpj = isset($_POST['cnpj']) ? preg_replace('/\D/', '', $_POST['cnpj']) : '';
+    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : get_current_user_id();
 
     if (empty($cnpj)) {
         wp_send_json_success(['exists' => false]);
@@ -22,6 +23,7 @@ add_action('wp_ajax_check_cnpj', function () {
                 'compare' => '='
             ]
         ],
+        'exclude' => [$user_id],
         'fields' => 'ids'
     ]);
 

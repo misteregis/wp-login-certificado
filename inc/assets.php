@@ -3,7 +3,6 @@
 if (!defined('ABSPATH')) exit;
 
 add_action('admin_enqueue_scripts', function ($hook) {
-
     if ($hook !== 'user-edit.php' && $hook !== 'profile.php') {
         return;
     }
@@ -18,6 +17,6 @@ add_action('admin_enqueue_scripts', function ($hook) {
 
     wp_localize_script('lc-cnpj-check', 'cnpjAjax', [
         'ajaxurl' => admin_url('admin-ajax.php'),
-        'user_id' => get_current_user_id()
+        'user_id' => isset($_GET['user_id']) ? $_GET['user_id'] : get_current_user_id()
     ]);
 });

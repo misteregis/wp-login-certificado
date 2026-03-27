@@ -17,8 +17,8 @@ add_action('init', function () {
 
 // Flush controlado
 add_action('init', function () {
-    if (get_option('login_cert_rewrite_version') !== '1.1.0') {
+    if (get_option('login_cert_rewrite_version') !== '1.1.1') {
         flush_rewrite_rules();
-        update_option('login_cert_rewrite_version', '1.1.0');
+        update_option('login_cert_rewrite_version', '1.1.1');
     }
 });

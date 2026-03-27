@@ -93,4 +93,6 @@ jQuery(function ($) {
     });
 
     $cnpjField.val(formatCnpj($cnpjField.val()));
+
+    lastCNPJ = $cnpjField.val();
 });

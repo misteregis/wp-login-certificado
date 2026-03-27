@@ -221,6 +221,12 @@ GET /jwt-login?token=<JWT>&redirect_to=<URL>
 
 ## Changelog
 
+### 1.1.1
+
+- Corrigida verificação de duplicidade de CNPJ ao editar perfil de outro usuário (agora usa o ID do usuário editado em vez do admin logado)
+- Endpoint AJAX `check_cnpj` agora exclui o próprio usuário da busca de duplicatas
+- Inicialização do `lastCNPJ` ao carregar o campo, evitando alerta falso de duplicidade ao abrir o perfil
+
 ### 1.1.0
 
 - Adicionada página de configurações em **Configurações → Login Certificado**
