@@ -120,6 +120,54 @@ add_action('admin_menu', function () {
                     submit_button('Salvar Configurações');
                     ?>
                 </form>
+
+                <hr />
+                <h2>Usuários com CNPJ cadastrado</h2>
+                <?php
+                $users_with_cnpj = get_users([
+                    'meta_key' => 'cnpj',
+                    'meta_value' => '',
+                    'meta_compare' => '!=',
+                ]);
+
+                if (empty($users_with_cnpj)) {
+                    echo '<p>Nenhum usuário com CNPJ cadastrado.</p>';
+                } else {
+                    ?>
+                    <table class="widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>CNPJ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($users_with_cnpj as $u) :
+                                $cnpj_raw = get_user_meta($u->ID, 'cnpj', true);
+                                $cnpj_masked = preg_replace(
+                                    '/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/',
+                                    '$1.$2.$3/$4-$5',
+                                    $cnpj_raw
+                                );
+                            ?>
+                                <tr>
+                                    <td>
+                                        <a href="<?php echo esc_url(admin_url('user-edit.php?user_id=' . $u->ID) . '#cnpj'); ?>">
+                                            <?php echo esc_html($u->display_name . ' (' . $u->user_login . ')'); ?>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="<?php echo esc_url(admin_url('user-edit.php?user_id=' . $u->ID) . '#cnpj'); ?>">
+                                            <?php echo esc_html($cnpj_masked); ?>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php
+                }
+                ?>
             </div>
             <?php
         }

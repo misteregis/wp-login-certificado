@@ -138,6 +138,8 @@ Usuário com certificado
 login-certificado/
 ├── login-certificado.php      # Arquivo principal — carrega todos os módulos
 ├── assets/
+│   ├── css/
+│   │   └── settings.css       # Estilos da página de configurações
 │   └── js/
 │       └── cnpj-check.js      # Formatação e verificação de duplicidade (frontend)
 └── inc/
@@ -147,7 +149,7 @@ login-certificado/
     ├── helpers.php            # Funções utilitárias (extrair CNPJ, obter IP do servidor)
     ├── user-meta.php          # Campo CNPJ no perfil + salvamento com validação
     ├── ajax.php               # Endpoint AJAX para verificar duplicidade de CNPJ
-    └── assets.php             # Enfileiramento de scripts no admin
+    └── assets.php             # Enfileiramento de scripts e estilos no admin
 ```
 
 ## Uso
@@ -220,6 +222,15 @@ GET /jwt-login?token=<JWT>&redirect_to=<URL>
 | `login_cert_custom_ip`       | IP personalizado para validação (quando modo = `custom`)   |
 
 ## Changelog
+
+### 1.2.0
+
+- Chave secreta (Secret) não é mais exposta no HTML — campo exibe placeholder mascarado, valor real nunca é enviado ao navegador
+- Campo de chave secreta usa `type="text"` com CSS `text-security: disc` para evitar prompt de salvar senha do navegador
+- Adicionado arquivo `assets/css/settings.css` para estilos da página de configurações
+- Formulário de configurações agora inclui `autocomplete="off"`
+- Adicionada tabela de usuários com CNPJ cadastrado na página de configurações, exibindo nome (login) e CNPJ com máscara
+- Nome do usuário e CNPJ na tabela são links para a tela de edição do usuário, com foco no campo CNPJ
 
 ### 1.1.1
 

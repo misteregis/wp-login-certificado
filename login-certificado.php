@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Login por Certificado (CNPJ)
  * Description: Autenticação automática via certificado digital (CNPJ).
- * Version: 1.1.1
+ * Version: 1.2.0
  * Author: Misteregis
  * Author URI:  https://github.com/misteregis/
  */

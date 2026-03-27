@@ -8,7 +8,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
             'lc-settings',
             plugin_dir_url(__FILE__) . '../assets/css/settings.css',
             [],
-            '1.1.1'
+            '1.2.0'
         );
     }
 
@@ -20,7 +20,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
         'lc-cnpj-check',
         plugin_dir_url(__FILE__) . '../assets/js/cnpj-check.js',
         ['jquery'],
-        '1.1.1',
+        '1.2.0',
         true
     );
 
