@@ -38,7 +38,7 @@ Além disso, o plugin adiciona um campo **CNPJ** ao perfil de cada usuário no p
 
 1. Copie a pasta `login-certificado` para `wp-content/plugins/`.
 2. Ative o plugin no painel **Plugins** do WordPress.
-3. O plugin faz flush das rewrite rules automaticamente na primeira ativação (controlado por versão).
+3. O plugin faz flush das rewrite rules automaticamente na ativação. Caso as regras sejam perdidas, o flush é refeito no próximo carregamento.
 
 ## Configuração do Plugin
 
@@ -192,7 +192,9 @@ GET /jwt-login?token=<JWT>&redirect_to=<URL>
 | Hook                              | Tipo     | Descrição                                      |
 |-----------------------------------|----------|-------------------------------------------------|
 | `query_vars`                      | Filter   | Registra a query var `jwt_login`                |
-| `init`                            | Action   | Registra a rewrite rule e controla flush        |
+| `init`                            | Action   | Registra a rewrite rule e flush condicional     |
+| `register_activation_hook`         | Action   | Flush de rewrite rules ao ativar o plugin       |
+| `register_deactivation_hook`       | Action   | Flush de rewrite rules ao desativar o plugin    |
 | `template_redirect`               | Action   | Executa a lógica de autenticação via JWT        |
 | `admin_init`                      | Action   | Registra as opções de configuração              |
 | `admin_menu`                      | Action   | Adiciona página de configurações                |
@@ -214,7 +216,7 @@ GET /jwt-login?token=<JWT>&redirect_to=<URL>
 
 | Option Key                   | Descrição                                                  |
 |------------------------------|------------------------------------------------------------|
-| `login_cert_rewrite_version` | Controle de flush de rewrite rules por versão              |
+
 | `login_cert_jwt_secret`      | Chave secreta para assinatura/validação JWT                |
 | `login_cert_iss`             | Valor esperado do campo `iss` no token                     |
 | `login_cert_aud`             | Valor esperado do campo `aud` no token                     |
@@ -222,6 +224,13 @@ GET /jwt-login?token=<JWT>&redirect_to=<URL>
 | `login_cert_custom_ip`       | IP personalizado para validação (quando modo = `custom`)   |
 
 ## Changelog
+
+### 1.2.1
+
+- Corrigido: rota `/jwt-login` retornava 404 na primeira requisição após ativação
+- Adicionados `register_activation_hook` e `register_deactivation_hook` para flush de rewrite rules
+- Flush condicional no `init`: verifica se a regra existe nas rewrite rules salvas antes de fazer flush
+- Removida opção `login_cert_rewrite_version` (substituída por verificação direta das regras)
 
 ### 1.2.0
 
